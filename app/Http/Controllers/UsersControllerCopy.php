@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ModalFormRequest;
 use App\Models\User;
-use DateTime;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,7 +13,7 @@ use Illuminate\Support\Facades\Hash;
 
 //use Yajra\DataTables\Facades\DataTables;
 
-class UsersController extends Controller
+class UsersControllerCopy extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -40,15 +39,15 @@ class UsersController extends Controller
 
 
     //funksion vetem per te marre femijet direkt te userit.
-    /*   private static function formatTree($user, $allUsers): void
-       {
-           $user->children = $allUsers->where('parent_id', $user->id)->values();
+ /*   private static function formatTree($user, $allUsers): void
+    {
+        $user->children = $allUsers->where('parent_id', $user->id)->values();
 
-           $user->children->each(function ($child) use ($allUsers) {
-               self::formatTree($child, $allUsers);
-           });
+        $user->children->each(function ($child) use ($allUsers) {
+            self::formatTree($child, $allUsers);
+        });
 
-       }*/
+    }*/
 
     private static function formatTree($user, $allUsers): void
     {
@@ -84,7 +83,7 @@ class UsersController extends Controller
         $tree = $this->tree()->toArray();
 
         $children = collect($tree['children'])->map(function ($child) {
-            return (object)$child;
+            return (object) $child;
         });
 
         if ($children->isEmpty()) {
@@ -100,11 +99,11 @@ class UsersController extends Controller
                     $isManager = $user->role === 'manager';
 
                     if ($isAdmin) {
-                        $btn = '<a href="javascript:void(0)" data-toggle="tooltip"  data-id="' . $row->id . '" data-original-title="Edit" class="edit btn btn-primary btn-sm editUser">Edit</a>';
-                        $btn .= ' <a href="javascript:void(0)" data-toggle="tooltip"  data-id="' . $row->id . '" data-original-title="Delete" class="btn btn-danger btn-sm deleteUser">Delete</a>';
+                        $btn = '<a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$row->id.'" data-original-title="Edit" class="edit btn btn-primary btn-sm editUser">Edit</a>';
+                        $btn .= ' <a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$row->id.'" data-original-title="Delete" class="btn btn-danger btn-sm deleteUser">Delete</a>';
                         return $btn;
                     } else if ($isManager) {
-                        return '<a href="javascript:void(0)" data-toggle="tooltip"  data-id="' . $row->id . '" data-original-title="Edit" class="edit btn btn-primary btn-sm editUser">Edit</a>';
+                        return '<a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$row->id.'" data-original-title="Edit" class="edit btn btn-primary btn-sm editUser">Edit</a>';
                     } else {
                         return '<em>Not Allowed</em>';
                     }
@@ -196,78 +195,7 @@ class UsersController extends Controller
     public function destroy(string $id): JsonResponse
     {
         User::find($id)->delete();
-        return response()->json(['success' => 'User deleted successfully.']);
-    }
-
-    /**
-     * @throws Exception
-     */
-
-    public function fetchUserYears(Request $request)
-    {
-        if ($request->operation == "years") {
-            $username = $request->username;
-
-            $user = User::with('hyrjeDaljeModel')->where('username', $username)->first();
-
-            if (!$user) {
-                return response()->json([]);
-            }
-
-            $formattedData = [];
-            $yearlyDuration = [];
-
-            foreach ($user->hyrjeDaljeModel as $hyrjeDalje) {
-                $timeHyrje = new DateTime($hyrjeDalje->ora_hyrje);
-                $timeDalje = new DateTime($hyrjeDalje->ora_dalje);
-
-                if ($timeHyrje->format('H:i:s') == '00:00:00'){
-                    $timeHyrje->setTime(24, 0, 0);
-                }
-                if ($timeDalje->format('H:i:s') == '00:00:00'){
-                    $timeDalje->setTime(24, 0, 0);
-                }
-
-                $difference = $timeDalje->getTimestamp() - $timeHyrje->getTimestamp();
-
-                $hours = floor($difference / 3600);
-                $minutes = floor(($difference % 3600) / 60);
-                $seconds = $difference % 60;
-
-                $dateHyrje = new DateTime($hyrjeDalje->data_hyrje);
-                $year = $dateHyrje->format('Y');
-
-                if (!isset($yearlyDuration[$year])) {
-                    $yearlyDuration[$year] = ['hours' => 0, 'minutes' => 0, 'seconds' => 0];
-                }
-                $yearlyDuration[$year]['hours'] += $hours;
-                $yearlyDuration[$year]['minutes'] += $minutes;
-                $yearlyDuration[$year]['seconds'] += $seconds;
-            }
-
-
-            foreach ($yearlyDuration as $year => $duration) {
-                if ($duration['seconds'] >= 60) {
-                    $duration['minutes'] += floor($duration['seconds'] / 60);
-                    $duration['seconds'] %= 60;
-                }
-
-                if ($duration['minutes'] >= 60) {
-                    $duration['hours'] += floor($duration['minutes'] / 60);
-                    $duration['minutes'] %= 60;
-                }
-
-                $formattedData[] = [
-                    'username' => $username,
-                    'year' => $year,
-                    'hours' => $duration['hours'],
-                    'minutes' => $duration['minutes'],
-                    'seconds' => $duration['seconds']
-                ];
-            }
-            return response()->json($formattedData);
-        }
-
+        return response()->json(['success'=>'User deleted successfully.']);
     }
 
 }

@@ -6,10 +6,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\HyrjeDaljeModel;
+
 
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
+
+    protected $table = 'users';
+    protected $primaryKey = 'id';
 
     /**
      * The attributes that are mass assignable.
@@ -51,4 +56,8 @@ class User extends Authenticatable
         ];
     }
 
+    public function hyrjeDaljeModel(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(HyrjeDaljeModel::class, 'user_id');
+    }
 }

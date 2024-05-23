@@ -172,47 +172,39 @@
 
             data.forEach(function(entry) {
                 tableContent += '<tr>' +
-                    '<td><a href="#" onclick="toggleInnerTable(\'' + tableId + '_' + entry.year + '\')">Open</a></td>' +
+                    '<td></td>' +
                     '<td>' + entry.year + '</td>' +
                     '<td>' + entry.hours + '</td>' +
                     '<td>' + entry.minutes + '</td>' +
                     '<td>' + entry.seconds + '</td>' +
                     '</tr>';
-
-                tableContent += '<tr id="' + tableId + '_' + entry.year + '" style="display: none;">' +
-                    '<td colspan="5">' +
-                    '<table class="table table-bordered table-hover tableMonth">' +
-                    '<thead class="thead-light">' +
-                    '<tr>' +
-                    '<th></th>' +
-                    '<th>Month</th>' +
-                    '<th>Hours worked</th>' +
-                    '<th>Minutes worked</th>' +
-                    '<th>Seconds worked</th>' +
-                    '</tr>' +
-                    '</thead>' +
-                    '<tbody>' +
-
-                    '</tbody>' +
-                    '</table>' +
-                    '</td>' +
-                    '</tr>';
             });
-
 
             tableContent += '</tbody></table>';
 
             return tableContent;
         }
+        /*
+                $('#' + tableId).DataTable({
+                    "paging": false,
+                    "searching": false,
+                    "processing": true,
+                    columns: [
+                        {
+                            className: 'details-control',
+                            orderable: false,
+                            data: null,
+                            defaultContent: ''
+                        },
+                        { data: 'year' },
+                        { data: 'hours' },
+                        { data: 'minutes' },
+                        { data: 'seconds' }
+                    ],
+                    order: [[1, 'asc']]
+                });
+        */
 
-        function toggleInnerTable(innerTableId) {
-            let innerTable = document.getElementById(innerTableId);
-            if (innerTable.style.display === "none") {
-                innerTable.style.display = "table-row";
-            } else {
-                innerTable.style.display = "none";
-            }
-        }
 
         $(function () {
 

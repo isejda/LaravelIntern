@@ -14,6 +14,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('users', [UsersController::class, 'store'])->name('users.store');
     Route::get('users/{id}/edit', [UsersController::class, 'edit'])->name('users.edit');
     Route::delete('users/delete/{user}', [UsersController::class, 'destroy'])->name('users.destroy');
+    Route::post('/users/fetch-years', [UsersController::class, 'fetchUserYears'])->name('users.fetch_years');
 });
 
 Route::resource('users',\App\Http\Controllers\UsersController::class )->middleware(['auth', 'verified']);
