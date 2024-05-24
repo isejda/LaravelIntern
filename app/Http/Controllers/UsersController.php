@@ -268,6 +268,170 @@ class UsersController extends Controller
             return response()->json($formattedData);
         }
 
+        if ($request->operation == "months") {
+            $username = $request->username;
+            $year = $request->year;
+
+            $user = User::with('hyrjeDaljeModel')->where('username', $username)->first();
+
+            if (!$user) {
+                return response()->json([]);
+            }
+
+            $formattedData = [];
+            $monthlyDuration = [];
+
+            // Calculate monthly durations
+            foreach ($user->hyrjeDaljeModel as $hyrjeDalje) {
+                $timeHyrje = new DateTime($hyrjeDalje->ora_hyrje);
+                $timeDalje = new DateTime($hyrjeDalje->ora_dalje);
+
+                if ($timeHyrje->format('H:i:s') == '00:00:00'){
+                    $timeHyrje->setTime(24, 0, 0);
+                }
+                if ($timeDalje->format('H:i:s') == '00:00:00'){
+                    $timeDalje->setTime(24, 0, 0);
+                }
+
+                $difference = $timeDalje->getTimestamp() - $timeHyrje->getTimestamp();
+
+                $hours = floor($difference / 3600);
+                $minutes = floor(($difference % 3600) / 60);
+                $seconds = $difference % 60;
+
+                $dateHyrje = new DateTime($hyrjeDalje->data_hyrje);
+                $month = $dateHyrje->format('n');
+
+                if ($dateHyrje->format('Y') == $year) {
+                    if (!isset($monthlyDuration[$month])) {
+                        $monthlyDuration[$month] = ['hours' => 0, 'minutes' => 0, 'seconds' => 0];
+                    }
+                    $monthlyDuration[$month]['hours'] += $hours;
+                    $monthlyDuration[$month]['minutes'] += $minutes;
+                    $monthlyDuration[$month]['seconds'] += $seconds;
+                }
+            }
+
+            // Format the data for each month
+            foreach ($monthlyDuration as $month => $duration) {
+                if ($duration['seconds'] >= 60) {
+                    $duration['minutes'] += floor($duration['seconds'] / 60);
+                    $duration['seconds'] %= 60;
+                }
+
+                if ($duration['minutes'] >= 60) {
+                    $duration['hours'] += floor($duration['minutes'] / 60);
+                    $duration['minutes'] %= 60;
+                }
+
+                $formattedData[] = [
+                    'month' => $month,
+                    'hours' => $duration['hours'],
+                    'minutes' => $duration['minutes'],
+                    'seconds' => $duration['seconds']
+                ];
+            }
+
+            return response()->json($formattedData);
+        }
+
+        if ($request->operation == "days") {
+            $username = $request->username;
+            $year = $request->year;
+            $month = $request->month;
+
+            $user = User::with('hyrjeDaljeModel')->where('username', $username)->first();
+
+            if (!$user) {
+                return response()->json([]);
+            }
+
+            $formattedData = [];
+            $dailyDuration = [];
+
+            // Calculate daily durations
+            foreach ($user->hyrjeDaljeModel as $hyrjeDalje) {
+                $timeHyrje = new DateTime($hyrjeDalje->ora_hyrje);
+                $timeDalje = new DateTime($hyrjeDalje->ora_dalje);
+
+                if ($timeHyrje->format('H:i:s') == '00:00:00'){
+                    $timeHyrje->setTime(24, 0, 0);
+                }
+                if ($timeDalje->format('H:i:s') == '00:00:00'){
+                    $timeDalje->setTime(24, 0, 0);
+                }
+
+                $difference = $timeDalje->getTimestamp() - $timeHyrje->getTimestamp();
+
+                $hours = floor($difference / 3600);
+                $minutes = floor(($difference % 3600) / 60);
+                $seconds = $difference % 60;
+
+                $dateHyrje = new DateTime($hyrjeDalje->data_hyrje);
+                $day = $dateHyrje->format('j');
+
+                if ($dateHyrje->format('Y') == $year && $dateHyrje->format('n') == $month) {
+                    if (!isset($dailyDuration[$day])) {
+                        $dailyDuration[$day] = ['hours' => 0, 'minutes' => 0, 'seconds' => 0];
+                    }
+                    $dailyDuration[$day]['hours'] += $hours;
+                    $dailyDuration[$day]['minutes'] += $minutes;
+                    $dailyDuration[$day]['seconds'] += $seconds;
+                }
+            }
+
+            // Format the data for each day
+            foreach ($dailyDuration as $day => $duration) {
+                if ($duration['seconds'] >= 60) {
+                    $duration['minutes'] += floor($duration['seconds'] / 60);
+                    $duration['seconds'] %= 60;
+                }
+
+                if ($duration['minutes'] >= 60) {
+                    $duration['hours'] += floor($duration['minutes'] / 60);
+                    $duration['minutes'] %= 60;
+                }
+
+                $formattedData[] = [
+                    'day' => $day,
+                    'hours' => $duration['hours'],
+                    'minutes' => $duration['minutes'],
+                    'seconds' => $duration['seconds']
+                ];
+            }
+
+            return response()->json($formattedData);
+        }
+
+        if ($request->operation == "hours") {
+            $username = $request->username;
+            $year = $request->year;
+            $month = $request->month;
+            $day = $request->day;
+
+            $user = User::with('hyrjeDaljeModel')->where('username', $username)->first();
+
+            if (!$user) {
+                return response()->json([]);
+            }
+
+            $formattedData = [];
+
+            foreach ($user->hyrjeDaljeModel as $hyrjeDalje) {
+                $dateHyrje = new DateTime($hyrjeDalje->data_hyrje);
+                $entryDay = $dateHyrje->format('j');
+
+                if ($dateHyrje->format('Y') == $year && $dateHyrje->format('n') == $month && $entryDay == $day) {
+                    $formattedData[] = [
+                        'entry_time' => $hyrjeDalje->ora_hyrje,
+                        'exit_time' => $hyrjeDalje->ora_dalje
+                    ];
+                }
+            }
+
+            return response()->json($formattedData);
+        }
+
     }
 
 }

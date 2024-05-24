@@ -150,15 +150,22 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
     <script src="https://cdn.datatables.net/2.0.7/js/dataTables.js"></script>
-
+<style>
+    #table > thead > tr > th{
+        background-color: #c7c6c6;
+        color: black;
+    }
+</style>
     <script>
         let table;
+        let tableYear;
+        let tableMonth;
+        let tableDays;
+        let tableHours;
 
-        function formatChildRow(data) {
-            let username = data.username;
-            let tableId = 'table_' + username;
+        function formatChildRowYear(data, tableClass) {
 
-            let tableContent = '<table id="' + tableId + '" class="table table-bordered table-hover tableYear">' +
+            let tableContent = '<table id="table" class="table table-bordered table-hover ' + tableClass + '">' +
                 '<thead class="thead-dark">' +
                 '<tr>' +
                 '<th></th>' +
@@ -172,55 +179,107 @@
 
             data.forEach(function(entry) {
                 tableContent += '<tr>' +
-                    '<td><a href="#" onclick="toggleInnerTable(\'' + tableId + '_' + entry.year + '\')">Open</a></td>' +
+                    '<td></td>' +
                     '<td>' + entry.year + '</td>' +
                     '<td>' + entry.hours + '</td>' +
                     '<td>' + entry.minutes + '</td>' +
                     '<td>' + entry.seconds + '</td>' +
                     '</tr>';
-
-                tableContent += '<tr id="' + tableId + '_' + entry.year + '" style="display: none;">' +
-                    '<td colspan="5">' +
-                    '<table class="table table-bordered table-hover tableMonth">' +
-                    '<thead class="thead-light">' +
-                    '<tr>' +
-                    '<th></th>' +
-                    '<th>Month</th>' +
-                    '<th>Hours worked</th>' +
-                    '<th>Minutes worked</th>' +
-                    '<th>Seconds worked</th>' +
-                    '</tr>' +
-                    '</thead>' +
-                    '<tbody>' +
-
-                    '</tbody>' +
-                    '</table>' +
-                    '</td>' +
-                    '</tr>';
             });
 
-
             tableContent += '</tbody></table>';
-
             return tableContent;
         }
 
-        function toggleInnerTable(innerTableId) {
-            let innerTable = document.getElementById(innerTableId);
-            if (innerTable.style.display === "none") {
-                innerTable.style.display = "table-row";
-            } else {
-                innerTable.style.display = "none";
-            }
+        function formatChildRowMonth(data, tableClass) {
+
+            let tableContent = '<table id="table" class="table table-bordered table-hover ' + tableClass + '">' +
+                '<thead class="thead-dark">' +
+                '<tr>' +
+                '<th></th>' +
+                '<th>Month</th>' +
+                '<th>Hours worked</th>' +
+                '<th>Minutes worked</th>' +
+                '<th>Seconds worked</th>' +
+                '</tr>' +
+                '</thead>' +
+                '<tbody>';
+
+            data.forEach(function(entry) {
+                let monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                let monthIndex = entry.month - 1;
+                let monthName = monthNames[monthIndex];
+
+                tableContent += '<tr>' +
+                    '<td></td>' +
+                    '<td>' + monthName + '</td>' +
+                    '<td>' + entry.hours + '</td>' +
+                    '<td>' + entry.minutes + '</td>' +
+                    '<td>' + entry.seconds + '</td>' +
+                    '</tr>';
+            });
+
+            tableContent += '</tbody></table>';
+            return tableContent;
         }
 
-        $(function () {
+        function formatChildRowDays(data, tableClass) {
 
+            let tableContent = '<table id="table" class="table table-bordered table-hover ' + tableClass + '">' +
+                '<thead class="thead-dark">' +
+                '<tr>' +
+                '<th></th>' +
+                '<th>Day</th>' +
+                '<th>Hours worked</th>' +
+                '<th>Minutes worked</th>' +
+                '<th>Seconds worked</th>' +
+                '</tr>' +
+                '</thead>' +
+                '<tbody>';
+
+            data.forEach(function(entry) {
+                tableContent += '<tr>' +
+                    '<td></td>' +
+                    '<td>' + entry.day + '</td>' +
+                    '<td>' + entry.hours + '</td>' +
+                    '<td>' + entry.minutes + '</td>' +
+                    '<td>' + entry.seconds + '</td>' +
+                    '</tr>';
+            });
+
+            tableContent += '</tbody></table>';
+            return tableContent;
+        }
+
+        function formatChildRowHours(data, tableClass) {
+
+            let tableContent = '<table id="table" class="table table-bordered table-hover ' + tableClass + '">' +
+                '<thead class="thead-dark">' +
+                '<tr>' +
+                '<th>Entry Time</th>' +
+                '<th>Exit Time</th>' +
+                '</tr>' +
+                '</thead>' +
+                '<tbody>';
+
+            data.forEach(function(entry) {
+                tableContent += '<tr>' +
+                    '<td>' + entry.entry_time + '</td>' +
+                    '<td>' + entry.exit_time + '</td>' +
+                    '</tr>';
+            });
+
+            tableContent += '</tbody></table>';
+            return tableContent;
+        }
+
+        $(document).ready(function (){
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
+
             table = $('.data-table').DataTable({
                 processing: true,
                 serverSide: true,
@@ -251,15 +310,180 @@
 
                 if (row.child.isShown()) {
                     row.child.hide();
-                    // tr.removeClass('shown');
                 } else {
                     $.ajax({
                         url: "{{ route('users.fetch_years') }}",
                         method: "POST",
                         data: { operation: "years", username: row.data().username },
                         success: function(response) {
-                            console.log(response);
-                            row.child(formatChildRow(response)).show();
+                            let username = row.data().username;
+                            let tableClass = 'table_' + username;
+                            // console.log(tableClass);
+                            row.child(formatChildRowYear(response, tableClass)).show();
+
+                            tableYear = $('.' + tableClass).DataTable({
+                                "paging": false,
+                                "searching": false,
+                                "processing": true,
+                                columns: [
+                                    {
+                                        className: 'dt-control',
+                                        orderable: false,
+                                        data: null,
+                                        defaultContent: ''
+                                    },
+                                    { data: 'year' },
+                                    { data: 'hours' },
+                                    { data: 'minutes' },
+                                    { data: 'seconds' }
+                                ],
+                                order: [[1, 'asc']]
+                            });
+
+                            tableYear.on('click', 'td.dt-control', function (e) {
+                                let tr = e.target.closest('tr');
+                                let row = tableYear.row(tr);
+
+                                if (row.child.isShown()) {
+                                    row.child.hide();
+                                }
+                                else {
+                                    $.ajax({
+                                        url: "{{ route('users.fetch_years') }}",
+                                        method: "POST",
+                                        data: { operation: "months", username: username, year: row.data().year  },
+                                        success: function(response) {
+                                            console.log(response);
+                                            let year = row.data().year;
+                                            let tableClass = 'table_' + username + year;
+                                            row.child(formatChildRowMonth(response, tableClass)).show();
+
+
+                                            tableMonth = $('.' + tableClass).DataTable({
+                                                "paging": false,
+                                                "searching": false,
+                                                "processing": true,
+                                                columns: [
+                                                    {
+                                                        className: 'dt-control',
+                                                        orderable: false,
+                                                        data: null,
+                                                        defaultContent: ''
+                                                    },
+                                                    { data: 'month' },
+                                                    { data: 'hours' },
+                                                    { data: 'minutes' },
+                                                    { data: 'seconds' }
+                                                ],
+                                                order: {
+                                                    data: 'month',
+                                                    dir: 'asc'
+                                                }
+                                            });
+
+                                            tableMonth.on('click', 'td.dt-control', function (e) {
+                                                let tr = e.target.closest('tr');
+                                                let row = tableMonth.row(tr);
+
+                                                if (row.child.isShown()) {
+                                                    row.child.hide();
+                                                }
+                                                else {
+                                                    let monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                                                    let month = row.data().month;
+                                                    let indexMonth = monthNames.indexOf(month)+1;
+
+                                                    $.ajax({
+                                                        url: "{{ route('users.fetch_years') }}",
+                                                        method: "POST",
+                                                        data: { operation: "days",
+                                                            username: username,
+                                                            year: year,
+                                                            month: indexMonth  },
+                                                        success: function(response) {
+                                                            console.log(response);
+                                                            let month = row.data().month;
+                                                            let tableClass = 'table_' + username + year + month;
+                                                            row.child(formatChildRowDays(response, tableClass)).show();
+
+                                                            tableDays = $('.' + tableClass).DataTable({
+                                                                "paging": false,
+                                                                "searching": false,
+                                                                "processing": true,
+                                                                columns: [
+                                                                    {
+                                                                        className: 'dt-control',
+                                                                        orderable: false,
+                                                                        data: null,
+                                                                        defaultContent: ''
+                                                                    },
+                                                                    { data: 'days' },
+                                                                    { data: 'hours' },
+                                                                    { data: 'minutes' },
+                                                                    { data: 'seconds' }
+                                                                ],
+                                                                order: [[1, 'asc']]
+                                                            });
+
+                                                            tableDays.on('click', 'td.dt-control', function (e) {
+                                                                let tr = e.target.closest('tr');
+                                                                let row = tableDays.row(tr);
+
+                                                                if (row.child.isShown()) {
+                                                                    row.child.hide();
+                                                                }
+                                                                else {
+                                                                    $.ajax({
+                                                                        url: "{{ route('users.fetch_years') }}",
+                                                                        method: "POST",
+                                                                        data: { operation: "hours", username: username, year: year, month: indexMonth, day: row.data().days  },
+                                                                        success: function(response) {
+                                                                            console.log(response);
+                                                                            let day = row.data().days;
+                                                                            console.log(day);
+                                                                            let tableClass = 'table_' + username + year + month + day;
+                                                                            row.child(formatChildRowHours(response, tableClass)).show();
+
+                                                                            tableHours = $('.' + tableClass).DataTable({
+                                                                                "paging": false,
+                                                                                "searching": false,
+                                                                                "processing": true,
+                                                                                columns: [
+                                                                                    { data: 'entry_time' },
+                                                                                    { data: 'exit_time' }
+                                                                                ],
+                                                                                order: [[1, 'asc']]
+                                                                            });
+
+                                                                        },
+                                                                        error: function(xhr, status, error) {
+                                                                            console.error("Error fetching data:", error);
+                                                                        }
+                                                                    });
+
+                                                                }
+                                                            });
+
+
+                                                        },
+                                                        error: function(xhr, status, error) {
+                                                            console.error("Error fetching data:", error);
+                                                        }
+                                                    });
+
+                                                }
+                                            });
+
+
+                                        },
+                                        error: function(xhr, status, error) {
+                                            console.error("Error fetching data:", error);
+                                        }
+                                    });
+
+                                }
+                            });
+
                         },
                         error: function(xhr, status, error) {
                             console.error("Error fetching data:", error);
@@ -273,7 +497,6 @@
 
         });
 
-
         $(document).on('click', '#btn_close', function () {
             closeModal();
             clearMessage();
@@ -284,20 +507,12 @@
             clearMessage();
         });
 
-
         $(document).on('click', '.addUser', function() {
             $('.modal-title').text("Add New User");
             $('#saveBtn').val("Save User");
             resetForm(); // Reset the form fields
             openModal();
         });
-
-        // $(document).on('click', function (event) {
-        //     if ($(event.target).closest('.modal-content').length === 0 && !$(event.target).hasClass('addUser')) {
-        //         closeModal();
-        //         clearMessage();
-        //     }
-        // });
 
         $('.modal').on('click', function (event) {
             if (!$(event.target).closest('.modal-content').length && !$(event.target).hasClass('addUser')) {
@@ -366,8 +581,6 @@
             });
         });
 
-
-
         $(document).on('click', '.deleteUser', function(){
             var user_id = $(this).data('id');
             Swal.fire({
@@ -406,13 +619,6 @@
                 }
             });
         });
-
-        // function closeModal(){
-        //     $('#message').html('');
-        //     $('.error').remove();
-        //     $('body').removeClass('modal-open');
-        // }
-
 
         function closeModal() {
             $('#addUser').trigger("reset");
