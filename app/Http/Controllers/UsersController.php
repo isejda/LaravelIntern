@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ModalFormRequest;
+use App\Http\Requests\UserStoreRequest;
+use App\Http\Requests\UserUpdateRequest;
 use App\Models\User;
 use DateTime;
 use Exception;
@@ -129,39 +131,15 @@ class UsersController extends Controller
      */
 
 
-    public function store(ModalFormRequest $request): JsonResponse
+    public function store(UserStoreRequest $request): JsonResponse
     {
-        $validatedData = $request->validated();
-
-        if ($request->filled('user_id')) {
-            $user = User::find($request->user_id);
-            if (!$user) {
-                return response()->json(['error' => 'User not found.'], 404);
-            }
-
-            // Update user data
-            $user->name = $validatedData['name'];
-            $user->lastname = $validatedData['lastname'];
-            $user->email = $validatedData['email'];
-            $user->username = $validatedData['username'];
-            $user->birthday = $validatedData['birthday'];
-            $user->role = $validatedData['role'];
-
-            if ($request->filled('password')) {
-                $user->password = bcrypt($validatedData['password']);
-            }
-
-            $user->save();
-
-            return response()->json(['success' => 'User updated successfully.']);
-        } else {
+            $validatedData = $request->validated();
             $userData = $validatedData;
             $userData['password'] = bcrypt($validatedData['password']);
             $userData['parent_id'] = auth()->user()->id;
 
             User::create($userData);
             return response()->json(['success' => 'User created successfully.']);
-        }
     }
 
     /**
@@ -175,20 +153,55 @@ class UsersController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id): JsonResponse
+    public function edit($id)
     {
-        $user = User::findOrFail($id);
-        return response()->json($user);
+        return User::findOrFail($id);
     }
 
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+
+//    public function update(UserUpdateRequest $request, string $i): JsonResponse
+//    {
+//        dd('update');
+//        $validatedData = $request->validated();
+//        $user = User::find($id);
+//        if (!$user) {
+//            return response()->json(['error' => 'User not found.'], 404);
+//        }
+//
+//        // Update user data
+//        $user->name = $validatedData['name'];
+//        $user->lastname = $validatedData['lastname'];
+//        $user->email = $validatedData['email'];
+//        $user->username = $validatedData['username'];
+//        $user->birthday = $validatedData['birthday'];
+//        $user->role = $validatedData['role'];
+//
+//        if ($request->filled('password')) {
+//            $user->password = bcrypt($validatedData['password']);
+//        }
+//
+//        $user->save();
+//
+//        return response()->json(['success' => 'User updated successfully.']);
+//    }
+
+    public function update(UserUpdateRequest $request, string $id): JsonResponse
+    {
+        $user = User::find($id);
+        $validatedData = $request->validated();
+        $user->fill($validatedData);
+        $user->save();
+
+        return response()->json(['success' => 'User updated successfully.']);
+    }
+/*    public function update(Request $request, string $id)
     {
         //
-    }
+    }*/
 
     /**
      * Remove the specified resource from storage.

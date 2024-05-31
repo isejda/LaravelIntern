@@ -91,6 +91,7 @@
                             <input id="birthday" name="birthday" type="date" class="form-control" placeholder="Enter birthday" required autofocus autocomplete="birthday" />
                             <span class="text-danger small" id="birthdayError"></span>
                         </div>
+                        <input type="hidden" id="action" name="action">
                         @if(auth()->user()->role === 'admin')
                             <div class="form-group">
                                 <label class="small mb-1" for="role">Role</label>
@@ -121,8 +122,8 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="confirmPassword" class="form-label font-weight-light">{{ __(' Confirm Password') }}</label>
-                            <input id="confirmPassword" name="confirmPassword" type="password" class="form-control" placeholder="Confirm password" autocomplete="confirmPassword" />
+                            <label for="password_confirmation" class="form-label font-weight-light">{{ __(' Confirm Password') }}</label>
+                            <input id="password_confirmation" name="password_confirmation" type="password" class="form-control" placeholder="Confirm password" autocomplete="password_confirmation" />
                         </div>
 
                         <div class="modal-footer">
@@ -158,10 +159,27 @@
 </style>
     <script>
         let table;
-        let tableYear;
-        let tableMonth;
-        let tableDays;
-        let tableHours;
+        let tableYear = {};
+        let tableMonth = {};
+        let tableDays = {};
+        let tableHours = {};
+
+  /*
+        const index = 'user-1';
+        if (yearTables[index]) {
+            yearTables[index].destroy()
+        }
+        yearTables[index] = $.DataTable({})
+
+        const monthTableIndex = 'user-1-year-2020-month-1-week-1';
+        if (monthTableIndex[monthTableIndex]) {
+            monthTableIndex[monthTableIndex].destroy()
+        }
+        monthTableIndex[monthTableIndex] = $.DataTable({})
+
+  */
+
+
 
         function formatChildRowYear(data, tableClass) {
 
@@ -286,7 +304,7 @@
                 ajax: "{{ route('users.index') }}",
                 columns: [
                     {
-                        className: 'dt-control',
+                        className: 'dt-control dt-control-1',
                         orderable: false,
                         data: null,
                         defaultContent: ''
@@ -304,7 +322,7 @@
                 order: [[1, 'asc']]
             });
 
-            table.on('click', 'td.dt-control', function (e) {
+            table.on('click', 'td.dt-control-1', function (e) {
                 let tr = e.target.closest('tr');
                 let row = table.row(tr);
 
@@ -327,7 +345,7 @@
                                 "processing": true,
                                 columns: [
                                     {
-                                        className: 'dt-control',
+                                        className: 'dt-control dt-control-2',
                                         orderable: false,
                                         data: null,
                                         defaultContent: ''
@@ -340,7 +358,7 @@
                                 order: [[1, 'asc']]
                             });
 
-                            tableYear.on('click', 'td.dt-control', function (e) {
+                            tableYear.on('click', 'td.dt-control-2', function (e) {
                                 let tr = e.target.closest('tr');
                                 let row = tableYear.row(tr);
 
@@ -365,7 +383,7 @@
                                                 "processing": true,
                                                 columns: [
                                                     {
-                                                        className: 'dt-control',
+                                                        className: 'dt-control dt-control-3',
                                                         orderable: false,
                                                         data: null,
                                                         defaultContent: ''
@@ -381,7 +399,7 @@
                                                 }
                                             });
 
-                                            tableMonth.on('click', 'td.dt-control', function (e) {
+                                            tableMonth.on('click', 'td.dt-control-3', function (e) {
                                                 let tr = e.target.closest('tr');
                                                 let row = tableMonth.row(tr);
 
@@ -396,10 +414,12 @@
                                                     $.ajax({
                                                         url: "{{ route('users.fetch_years') }}",
                                                         method: "POST",
-                                                        data: { operation: "days",
+                                                        data: {
+                                                            operation: "days",
                                                             username: username,
                                                             year: year,
-                                                            month: indexMonth  },
+                                                            month: indexMonth
+                                                        },
                                                         success: function(response) {
                                                             console.log(response);
                                                             let month = row.data().month;
@@ -412,7 +432,7 @@
                                                                 "processing": true,
                                                                 columns: [
                                                                     {
-                                                                        className: 'dt-control',
+                                                                        className: 'dt-control dt-control-4',
                                                                         orderable: false,
                                                                         data: null,
                                                                         defaultContent: ''
@@ -425,7 +445,7 @@
                                                                 order: [[1, 'asc']]
                                                             });
 
-                                                            tableDays.on('click', 'td.dt-control', function (e) {
+                                                            tableDays.on('click', 'td.dt-control-4', function (e) {
                                                                 let tr = e.target.closest('tr');
                                                                 let row = tableDays.row(tr);
 
@@ -510,6 +530,7 @@
         $(document).on('click', '.addUser', function() {
             $('.modal-title').text("Add New User");
             $('#saveBtn').val("Save User");
+            $('#action').val("Save");
             resetForm(); // Reset the form fields
             openModal();
         });
@@ -524,6 +545,7 @@
         $(document).on('submit', '#addUser', function(e) {
             e.preventDefault();
             var formData = $("#addUser").serialize();
+            // console.log($('#action').val());
 
             $('#nameError').addClass('d-none');
             $('#lastnameError').addClass('d-none');
@@ -532,11 +554,13 @@
             $('#emailError').addClass('d-none');
             $('#passwordError').addClass('d-none');
 
+            const user_id = $('#user_id').val();
+            console.log(user_id);
 
             $.ajax({
                 data: formData,
-                url: "{{ route('users.store') }}",
-                type: "POST",
+                url: $('#action').val() === 'Save' ? "{{ route('users.store') }}" : "{{ url('users') }}"+'/'+user_id,
+                type: $('#action').val() === 'Save' ? "POST" : "PATCH",
                 dataType: 'json',
                 success: function (data){
                     showMessage('success', data.success);
@@ -575,8 +599,9 @@
                 $('#email').val(data.email);
                 $('#birthday').val(data.birthday);
                 $('#role').val(data.role);
+                $('#action').val("Update");
                 $('#password').closest('.form-group').hide();
-                $('#confirmPassword').closest('.form-group').hide();
+                $('#password_confirmation').closest('.form-group').hide();
                 openModal();
             });
         });
@@ -623,10 +648,11 @@
         function closeModal() {
             $('#addUser').trigger("reset");
             $('#password').closest('.form-group').show();
-            $('#confirmPassword').closest('.form-group').show();
+            $('#password_confirmation').closest('.form-group').show();
             clearMessage();
             $('#myModal').modal("hide");
             $('.modal-backdrop').remove();
+            $('#action').val("Save");
             $('body').removeClass('modal-open')
             $('.modal-title').text("Add New User");
             $('#saveBtn').val("Save User");
