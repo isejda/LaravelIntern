@@ -18,12 +18,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/users/fetch-years', [UsersController::class, 'fetchUserYears'])->name('users.fetch_years');
 });
 
-//Route::resource('users',\App\Http\Controllers\UsersController::class )->middleware(['auth', 'verified']);
-
-/*
-Route::get('/users', function () {
-    return view('users');
-})->middleware(['auth', 'verified'])->name('users');*/
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -34,7 +28,3 @@ Route::middleware('auth')->group(function () {
 Route::resource('purchases',\App\Http\Controllers\PurchaseController::class );
 
 require __DIR__.'/auth.php';
-
-//Auth::routes();
-
-//Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

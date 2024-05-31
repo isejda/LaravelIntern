@@ -151,6 +151,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
     <script src="https://cdn.datatables.net/2.0.7/js/dataTables.js"></script>
+
 <style>
     #table > thead > tr > th{
         background-color: #c7c6c6;
@@ -163,23 +164,6 @@
         let tableMonth = {};
         let tableDays = {};
         let tableHours = {};
-
-  /*
-        const index = 'user-1';
-        if (yearTables[index]) {
-            yearTables[index].destroy()
-        }
-        yearTables[index] = $.DataTable({})
-
-        const monthTableIndex = 'user-1-year-2020-month-1-week-1';
-        if (monthTableIndex[monthTableIndex]) {
-            monthTableIndex[monthTableIndex].destroy()
-        }
-        monthTableIndex[monthTableIndex] = $.DataTable({})
-
-  */
-
-
 
         function formatChildRowYear(data, tableClass) {
 
@@ -336,10 +320,14 @@
                         success: function(response) {
                             let username = row.data().username;
                             let tableClass = 'table_' + username;
+                            let index = 'table_' + username;
+
+                            if (tableYear[index]) {
+                                tableYear[index].destroy()
+                            }
                             // console.log(tableClass);
                             row.child(formatChildRowYear(response, tableClass)).show();
-
-                            tableYear = $('.' + tableClass).DataTable({
+                            tableYear[index] = $('.' + tableClass).DataTable({
                                 "paging": false,
                                 "searching": false,
                                 "processing": true,
@@ -356,11 +344,12 @@
                                     { data: 'seconds' }
                                 ],
                                 order: [[1, 'asc']]
-                            });
+                            })
 
-                            tableYear.on('click', 'td.dt-control-2', function (e) {
+
+                            tableYear[index].on('click', 'td.dt-control-2', function (e) {
                                 let tr = e.target.closest('tr');
-                                let row = tableYear.row(tr);
+                                let row = tableYear[index].row(tr);
 
                                 if (row.child.isShown()) {
                                     row.child.hide();
@@ -374,10 +363,16 @@
                                             console.log(response);
                                             let year = row.data().year;
                                             let tableClass = 'table_' + username + year;
+                                            let index = 'table_' + username + year;
+
+
+                                            if (tableMonth[index]) {
+                                                tableMonth[index].destroy()
+                                            }
                                             row.child(formatChildRowMonth(response, tableClass)).show();
 
 
-                                            tableMonth = $('.' + tableClass).DataTable({
+                                            tableMonth[index] = $('.' + tableClass).DataTable({
                                                 "paging": false,
                                                 "searching": false,
                                                 "processing": true,
@@ -399,9 +394,9 @@
                                                 }
                                             });
 
-                                            tableMonth.on('click', 'td.dt-control-3', function (e) {
+                                            tableMonth[index].on('click', 'td.dt-control-3', function (e) {
                                                 let tr = e.target.closest('tr');
-                                                let row = tableMonth.row(tr);
+                                                let row = tableMonth[index].row(tr);
 
                                                 if (row.child.isShown()) {
                                                     row.child.hide();
@@ -424,9 +419,14 @@
                                                             console.log(response);
                                                             let month = row.data().month;
                                                             let tableClass = 'table_' + username + year + month;
+                                                            let index = 'table_' + username + year + month;
+                                                            if (tableDays[index]) {
+                                                                tableDays[index].destroy()
+                                                            }
+
                                                             row.child(formatChildRowDays(response, tableClass)).show();
 
-                                                            tableDays = $('.' + tableClass).DataTable({
+                                                            tableDays[index] = $('.' + tableClass).DataTable({
                                                                 "paging": false,
                                                                 "searching": false,
                                                                 "processing": true,
@@ -445,9 +445,9 @@
                                                                 order: [[1, 'asc']]
                                                             });
 
-                                                            tableDays.on('click', 'td.dt-control-4', function (e) {
+                                                            tableDays[index].on('click', 'td.dt-control-4', function (e) {
                                                                 let tr = e.target.closest('tr');
-                                                                let row = tableDays.row(tr);
+                                                                let row = tableDays[index].row(tr);
 
                                                                 if (row.child.isShown()) {
                                                                     row.child.hide();
@@ -462,9 +462,14 @@
                                                                             let day = row.data().days;
                                                                             console.log(day);
                                                                             let tableClass = 'table_' + username + year + month + day;
+                                                                            let index = 'table_' + username + year + month + day;
+                                                                            if (tableHours[index]) {
+                                                                                tableHours[index].destroy()
+                                                                            }
+
                                                                             row.child(formatChildRowHours(response, tableClass)).show();
 
-                                                                            tableHours = $('.' + tableClass).DataTable({
+                                                                            tableHours[index] = $('.' + tableClass).DataTable({
                                                                                 "paging": false,
                                                                                 "searching": false,
                                                                                 "processing": true,
